@@ -846,7 +846,7 @@ tbody tr.click{cursor:pointer}
         <div class="fgr full"><label class="flbl">API Key</label><input class="fi" id="fb-key" placeholder="AIzaSy..."/></div>
         <div class="fgr full"><label class="flbl">Database URL</label><input class="fi" id="fb-url" placeholder="https://mi-proyecto-default-rtdb.firebaseio.com"/></div>
         <div class="fgr full"><label class="flbl">Project ID</label><input class="fi" id="fb-pid" placeholder="mi-proyecto-wms"/></div>
-        <div class="fgr full"><div id="fb-status" style="padding:8px 11px;border-radius:7px;font-size:11px;font-family:var(--mono);background:#f9f9f9;border:1px solid var(--bdr)">Estado: No configurado - usando almacenamiento local</div></div>
+        <div class="fgr full"><div id="fb-status" style="padding:8px 11px;border-radius:7px;font-size:11px;font-family:var(--mono);background:#f9f9f9;border:1px solid var(--bdr)">Firebase Sumatec WMS configurado - conectando...</div></div>
         <div class="fgr row"><button class="btn" onclick="testFB()">Probar conexion</button><button class="btn primary" onclick="saveFBConfig()">Guardar y conectar</button></div>
       </div>
     </div>
@@ -1052,6 +1052,17 @@ var DB = null;
 var currentUser = null;
 var FB_ON = false;
 var fbRef = null;
+
+// ---- FIREBASE CONFIG (Sumatec WMS) ----
+var FIREBASE_CFG = {
+  apiKey: "AIzaSyCNAHPJyP4Wxf-zOc00JKYR5QfxqWwKvNw",
+  authDomain: "sumatec-wms-mzl.firebaseapp.com",
+  databaseURL: "https://sumatec-wms-mzl-default-rtdb.firebaseio.com",
+  projectId: "sumatec-wms-mzl",
+  storageBucket: "sumatec-wms-mzl.appspot.com",
+  messagingSenderId: "auto",
+  appId: "sumatec-wms-mzl"
+};
 var scanTargetId = null;
 var scanStream = null;
 var scanRaf = null;
@@ -1220,6 +1231,7 @@ function loginOK(user) {
   var sr=document.getElementById('sb-role'); if(sr)sr.textContent=({jefe:'Jefe de Bodega',supervisor:'Supervisor',operario:'Operario',lectura:'Solo lectura'}[user.role]||user.role);
   var fbCfg = localStorage.getItem('fb_config');
   if (fbCfg) { try { initFirebase(JSON.parse(fbCfg)); } catch(e){} }
+  if (!FB_ON) { try { initFirebase(FIREBASE_CFG); } catch(e){} }
   DB = loadDB();
   initApp();
 }
@@ -1660,6 +1672,9 @@ function loadConfigForm(db){
 function loadFBForm(){
   var fbCfg=localStorage.getItem('fb_config');
   if(fbCfg){try{var cfg=JSON.parse(fbCfg);sv('fb-key',cfg.apiKey||'');sv('fb-url',cfg.databaseURL||'');sv('fb-pid',cfg.projectId||'');}catch(e){}}
+  if(!document.getElementById('fb-key').value) sv('fb-key',FIREBASE_CFG.apiKey);
+  if(!document.getElementById('fb-url').value) sv('fb-url',FIREBASE_CFG.databaseURL);
+  if(!document.getElementById('fb-pid').value) sv('fb-pid',FIREBASE_CFG.projectId);
   setRTStatus(FB_ON);
 }
 
@@ -1862,6 +1877,8 @@ function initApp(){
 
 // ---- BOOT ----
 (function(){
+  // Auto-connect Firebase Sumatec WMS
+  try { initFirebase(FIREBASE_CFG); } catch(e) {}
   var s=sessionStorage.getItem('wms_session');
   if(s){try{var u=JSON.parse(s);if(u&&u.user&&u.pass){loginOK(u);return;}}catch(e){}}
   document.getElementById('login-screen').style.display='flex';
